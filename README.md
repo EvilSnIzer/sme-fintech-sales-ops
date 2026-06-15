@@ -1,53 +1,59 @@
-# SME Fintech Sales Ops Pipeline
+<p align="center"> <img src="assets/readme_hero.png" alt="SME Fintech Sales Ops Pipeline" style="width:100%; border-radius:8px;"/> </p><p align="center"> <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/> <img src="https://img.shields.io/badge/pandas-2.2-150458?style=flat-square&logo=pandas&logoColor=white" alt="pandas"/> <img src="https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite&logoColor=white" alt="SQLite"/> <img src="https://img.shields.io/badge/pytest-8.0-0A9E97?style=flat-square&logo=pytest&logoColor=white" alt="pytest"/> <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT"/> </p>
+Overview
+End-to-end sales operations pipeline for SME fintech. Automates data ingestion, SQL analytics, Excel reporting, and Slack alerting — with zero manual intervention.
 
-I built this as a portfolio project to show that I can automate a real sales operations workflow end-to-end with Python.
+Quick Start
+Bash
 
-It takes a public CRM dataset, reshapes it into an SME fintech sales story, loads it into SQLite, flags stalled deals and at-risk accounts with SQL, and produces an Excel report plus a Slack alert. It can also run on a schedule with zero manual intervention.
+pip install -r requirements.txt
+python run.py --run-once      # run once
+python run.py --schedule      # daily scheduler (08:00)
+Pipeline
+text
 
-> **Why this exists:** I wanted a project that feels like a real junior data/ops role — messy input data, cleaning, SQL analytics, reporting, and alerting — rather than a polished toy dataset.
+CRM Dataset → Clean & Transform → SQLite → SQL Analytics
+                                      ├── Stalled Deals (7+ days inactive)
+                                      ├── At-Risk Accounts (proposal stage)
+                                      └── Rep Performance
+                                 ┌─────┴─────┐
+                          Excel Report     Slack Alert / JSON draft
+                                 └─────┬─────┘
+                               Power BI CSV Export
+Output
+File	Description
+outputs/daily_ops_report.xlsx	6-sheet Excel report
+outputs/sales_ops.db	SQLite — deals, activity_logs, v_deal_health
+outputs/powerbi_dataset.csv	Power BI export with is_stalled / is_at_risk flags
+outputs/alerts/slack_alert_*.json	Local alert draft (when webhook not set)
+Screenshots
+Overview	Stalled	At-Risk	Reps
+<img src="assets/dashboard_overview.png" width="100%"/>	<img src="assets/dashboard_stalled.png" width="100%"/>	<img src="assets/dashboard_at_risk.png" width="100%"/>	<img src="assets/dashboard_reps.png" width="100%"/>
+Configuration
+Bash
 
-## What it does
+cp .env.example .env
+Variable	Default	Description
+SLACK_WEBHOOK_URL	—	Slack incoming webhook
+SLACK_ENABLED	false	Enable Slack alerts
+STALLED_DAYS	7	Inactivity threshold (days)
+AT_RISK_DAYS	5	At-risk inactivity threshold
+SCHEDULE_TIME	08:00	Daily run time
+Structure
+text
 
-1. **Downloads** the public Maven Analytics CRM dataset from a GitHub mirror.
-2. **Cleans & re-contextualizes** it as an SME fintech sales pipeline.
-3. **Generates** synthetic activity logs (the original dataset doesn't have them).
-4. **Loads** everything into SQLite.
-5. **Detects**:
-   - **Stalled deals** — open deals with no activity in 7 days.
-   - **At-risk accounts** — proposal-stage deals closing within 7 days or quiet for 5 days.
-6. **Writes** a formatted Excel report with summary, stalled deals, at-risk accounts, and rep performance.
-7. **Exports** a Power BI-ready CSV.
-8. **Sends** a Slack alert (or saves a local draft if no webhook is set).
-9. **Schedules** daily runs with the `schedule` library.
+src/
+  config.py    # env config + domain maps
+  data.py      # download · clean · transform · synthesize
+  db.py        # SQLite wrapper
+  analytics.py # SQL detection logic
+  reports.py   # Excel report builder
+  alerts.py    # Slack webhook + local fallback
+  scheduler.py # daily scheduler
 
-## Tech stack
+tests/
+  test_pipeline.py   # pytest checks
+Test
+Bash
 
-`Python · Pandas · SQLite · SQL · OpenPyXL · requests · schedule · Slack webhooks · Power BI`
-
-## Folder structure
-
-```text
-sme-fintech-sales-ops/
-├── data/                  # Raw public CRM CSVs + source note
-├── notebooks/
-│   └── 01_first_draft.ipynb   # My messy first attempt
-├── src/                   # Cleaned-up modular code
-│   ├── config.py
-│   ├── data.py            # Download, clean, transform
-│   ├── db.py              # SQLite wrapper
-│   ├── analytics.py       # SQL detection logic
-│   ├── reports.py         # Excel report builder
-│   ├── alerts.py          # Slack webhook / file fallback
-│   └── scheduler.py       # Daily scheduler
-├── tests/                 # pytest sanity checks
-├── assets/                # Dashboard screenshots
-│   ├── dashboard_overview.png
-│   ├── dashboard_reps.png
-│   ├── dashboard_at_risk.png
-│   ├── dashboard_products.png
-│   └── dashboard_stalled.png
-├── run.py                 # CLI entry point
-├── requirements.txt
-├── .env.example
-├── .gitignore
-└── README.md
+python -m pytest tests/ -v
+MIT License · EvilSnIzer
