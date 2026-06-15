@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+
+# Generated outputs
+outputs/
+!outputs/.gitkeep
+
+# Data cache (we keep the public CSVs in data/ but ignore processed files)
+outputs/processed/
+
+# Secrets
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Notebooks checkpoints
+notebooks/.ipynb_checkpoints/
